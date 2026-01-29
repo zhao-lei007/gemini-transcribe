@@ -1,72 +1,137 @@
 # gemini-transcribe
 
-A command-line tool that uses Google Gemini to transcribe audio files with timestamps and speaker identification.
+A local, job-driven workflow for transcribing MP4 audio with Gemini, with resumable state, prompt versioning, and structured outputs.
 
 ## Features
 
-- Transcribes audio files using Google Gemini's AI capabilities
-- Automatically identifies different speakers and adds timestamps
-- Outputs transcription to both console and text file
-- Supports customizable model selection
+- `job.yaml`-driven workflow with resume support
+- MP4 → audio stabilization → size-based segmentation → serial transcription
+- Structured JSON output + timeline and role views
+- Prompt versioning with per-job prompt bundles
+- Rerun single segments for prompt comparison
 
 ## Prerequisites
 
-- Python 3.8 or higher
-- Google Cloud account with Vertex AI and Cloud Storage APIs enabled
-- Google Cloud credentials configured
+- Python 3.12+
+- `ffmpeg` and `ffprobe` available on your PATH
+- Gemini Developer API key set as `GEMINI_API_KEY`
+
+```bash
+export GEMINI_API_KEY="your-api-key"
+```
 
 ## Installation
 
-1. Clone this repository:
-   ```
-   git clone https://github.com/yourusername/gemini-transcribe.git
-   cd gemini-transcribe
-   ```
-
-2. Install the required dependencies:
-   ```
-   pip install google-cloud-storage vertexai rich
-   ```
-
-3. Set up Google Cloud credentials:
-   ```
-   export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/credentials.json"
-   ```
+```bash
+pip install -e .
+```
 
 ## Usage
 
-Basic usage:
-```
-python main.py
-```
+<details>
+<summary>中文（点击切换）</summary>
 
-This will use the default input file and model.
+### 快速开始
 
-### Command-line Arguments
-
-- `--input`: Path to the audio file to transcribe (default: "Taking AI Agents to Production [bTlvrWeeqYo]_trimmed.mp3")
-- `--model`: Gemini model to use (default: "gemini-2.0-flash-001")
-- `--output`: Path to save the transcription (defaults to input filename with timestamp)
-
-Examples:
-```
-# Specify a different input file
-python main.py --input my_podcast.mp3
-
-# Use a different Gemini model
-python main.py --model gemini-1.5-flash-002
-
-# Save to a specific output file
-python main.py --output my_transcript.txt
+```bash
+transcribe init --path job.yaml
+# 编辑 job.yaml，设置输入 MP4 路径和 job id
+transcribe run job.yaml
 ```
 
-## Output Format
+### 常用命令
 
-The transcription is formatted with timestamps, speaker identification, and captions:
-
-```
-[00:00:00] Speaker A: Your devices are getting better over time...
-[00:00:16] Speaker B: Welcome to the Made by Google podcast...
+```bash
+transcribe status outputs/<job_id>
+transcribe rerun --job outputs/<job_id> --segment 2 --prompt v1
 ```
 
-The output is displayed in the console and saved to the specified text file.
+> 提示：需确保环境变量 `GEMINI_API_KEY` 已设置，且本机安装 `ffmpeg`/`ffprobe`。
+
+</details>
+
+<details>
+<summary>English (click to switch)</summary>
+
+### Quick start
+
+```bash
+transcribe init --path job.yaml
+# Edit job.yaml to point at your input MP4 and job id
+transcribe run job.yaml
+```
+
+### Common commands
+
+```bash
+transcribe status outputs/<job_id>
+transcribe rerun --job outputs/<job_id> --segment 2 --prompt v1
+```
+
+> Tip: ensure `GEMINI_API_KEY` is set and `ffmpeg`/`ffprobe` are installed.
+
+</details>
+
+### Initialize a job
+
+```bash
+transcribe init --path job.yaml
+```
+
+This creates a `job.yaml` template and a `prompts/v1` directory.
+
+### Run a job (with resume)
+
+```bash
+transcribe run job.yaml
+```
+
+### Check status
+
+```bash
+transcribe status outputs/<job_id>
+```
+
+### Rerun a segment
+
+```bash
+transcribe rerun --job outputs/<job_id> --segment 2 --prompt v1
+```
+
+### End-to-end example
+
+```bash
+transcribe init --path job.yaml
+# Edit job.yaml to point at your input MP4
+transcribe run job.yaml
+```
+
+## Output structure
+
+```
+outputs/<job_id>/
+  job.effective.yaml
+  state.json
+  segments/
+    segment_0000.mp3
+    segment_0000.json
+    segment_0000.md
+    segment_0000_handoff.txt
+  final/
+    merged.json
+    timeline.md
+    by_role.md
+```
+
+## Legacy mode
+
+The old `--input/--model/--output` usage is still supported and maps to a single-segment run:
+
+```bash
+python main.py --input my.mp4 --model gemini-2.0-flash-001 --output transcript.txt
+```
+
+## Notes
+
+- The workflow uses the Gemini Developer API Files API for upload/delete per segment.
+- If the process is interrupted, rerun `transcribe run job.yaml` to resume.

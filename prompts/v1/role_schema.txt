@@ -1,0 +1,11 @@
+Return JSON with this structure:
+{
+  "segment_index": number,
+  "transcript": [
+    {"start": "HH:MM:SS.mmm", "end": "HH:MM:SS.mmm", "speaker": "Speaker A", "text": "..."}
+  ],
+  "summary": "...",
+  "roles": [
+    {"role": "Speaker A", "description": "..."}
+  ]
+}

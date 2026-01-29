@@ -1,0 +1,1 @@
+Create a JSON response that follows the same schema as the transcription, but focus on a short summary and stable speaker labels for handoff to the next segment.

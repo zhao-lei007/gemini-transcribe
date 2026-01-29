@@ -1,0 +1,4 @@
+Formatting preferences:
+- Use "Speaker A", "Speaker B", etc.
+- Keep utterances concise.
+- Summarize the segment in one paragraph.
