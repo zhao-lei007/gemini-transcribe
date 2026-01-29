@@ -1,0 +1,21 @@
+# Example job configuration for gemini-transcribe
+job:
+  id: example-job
+  input: path/to/input.mp4
+  title: Example Interview
+segmentation:
+  max_chunk_size_mb: 20
+  overlap_sec: 5
+  audio_bitrate_kbps: 96
+  audio_format: mp3
+roles:
+  speaker_prefix: Speaker
+prompt:
+  version: v1
+execution:
+  model: gemini-2.0-flash-001
+  resume: true
+  max_retries_transient: 3
+  max_retries_semantic: 2
+storage:
+  work_dir: outputs
